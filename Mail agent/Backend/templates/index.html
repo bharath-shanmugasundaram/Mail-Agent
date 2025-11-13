@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Mail Agent</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px 35px;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      max-width: 500px;
+      width: 100%;
+      transition: transform 0.2s;
+    }
+
+    .container:hover {
+      transform: translateY(-5px);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #4b4b4b;
+      font-weight: 700;
+      font-size: 28px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      resize: vertical;
+      min-height: 120px;
+      margin-bottom: 20px;
+      font-size: 15px;
+      outline: none;
+      transition: border 0.3s, box-shadow 0.3s;
+    }
+
+    textarea:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 8px rgba(0,123,255,0.3);
+    }
+
+    button {
+      width: 100%;
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      color: #fff;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #0056b3, #003f7f);
+      transform: translateY(-2px);
+    }
+
+    .response {
+      margin-top: 25px;
+      padding: 15px;
+      border-radius: 12px;
+      background: #f3f6ff;
+      border: 1px solid #d0d7ff;
+      font-size: 14px;
+      color: #333;
+      line-height: 1.5;
+      transition: all 0.3s;
+    }
+
+    .response p {
+      margin: 5px 0;
+    }
+
+    .error {
+      color: #d9534f;
+      font-weight: 600;
+    }
+
+    .success {
+      color: #28a745;
+      font-weight: 600;
+    }
+
+    /* Responsive */
+    @media(max-width: 550px){
+      .container {
+        padding: 25px 20px;
+        border-radius: 16px;
+      }
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📧 AI Mail Agent</h1>
+    <form id="mailForm">
+      <textarea id="input" placeholder="Type your email request..."></textarea>
+      <button type="submit">Send Email</button>
+    </form>
+    <div id="response" class="response"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById("mailForm");
+    const inputField = document.getElementById("input");
+    const responseDiv = document.getElementById("response");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      responseDiv.innerHTML = "⏳ Sending...";
+      
+      try {
+        const res = await fetch("http://localhost:8000/send_ai_mail", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ input: inputField.value }),
+        });
+        const data = await res.json();
+
+        if (data.error) {
+          responseDiv.innerHTML = `<p class="error">❌ ${data.error}</p>`;
+        } else {
+          responseDiv.innerHTML = `
+            <p class="success">✅ ${data.message}</p>
+            <p><strong>To:</strong> ${data.to?.join(", ")}</p>
+            ${data.cc?.length ? `<p><strong>CC:</strong> ${data.cc.join(", ")}</p>` : ""}
+            <p><strong>Subject:</strong> ${data.subject}</p>
+          `;
+        }
+      } catch (err) {
+        responseDiv.innerHTML = `<p class="error">❌ Failed to connect to backend</p>`;
+      }
+    });
+  </script>
+</body>
+</html>
